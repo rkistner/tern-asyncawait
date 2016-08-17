@@ -34,35 +34,35 @@ function makePromise(argument) {
 }
 
 function addFakeReturn(node) {
-	var block = node.body;
-	if(block == null || block.type != 'BlockStatement') {
-		// TODO: can this happen?
-		return;
-	}
-	var fakeReturn = new acorn.Node(parser);
+  var block = node.body;
+  if(block == null || block.type != 'BlockStatement') {
+    // TODO: can this happen?
+    return;
+  }
+  var fakeReturn = new acorn.Node(parser);
 
-	fakeReturn.type = 'ReturnStatement';
-	fakeReturn.argument = makePromise();
+  fakeReturn.type = 'ReturnStatement';
+  fakeReturn.argument = makePromise();
 
-	block.body.push(fakeReturn);
+  block.body.push(fakeReturn);
 }
 var transformVisitor = {
   FunctionDeclaration: function(node, state, ancestors) {
     if(node.async) {
-			addFakeReturn(node);
+      addFakeReturn(node);
     }
   },
-	ArrowFunctionExpression: function(node, state, ancestors) {
-		if(node.async) {
-			if(node.expression) {
-				// Implicit return
-				node.body = makePromise(node.body);
-			} else {
-				// Explicit return. Add a return statement in case there is none.
-				addFakeReturn(node);
-			}
-		}
-	},
+  ArrowFunctionExpression: function(node, state, ancestors) {
+    if(node.async) {
+      if(node.expression) {
+        // Implicit return
+        node.body = makePromise(node.body);
+      } else {
+        // Explicit return. Add a return statement in case there is none.
+        addFakeReturn(node);
+      }
+    }
+  },
   ReturnStatement: function(node, state, ancestors) {
     var isAsync = false;
 
@@ -90,7 +90,7 @@ var transformVisitor = {
     // Replace the current node with a call
     // `await <expression>` => `__Promise_value(<expression>)`
     node.type = 'CallExpression';
-		delete node.argument;
+    delete node.argument;
     node.await = true;
 
     node.callee = new acorn.Node(parser);
@@ -98,20 +98,20 @@ var transformVisitor = {
     node.callee.name = '__Promise_value';
 
     node.callee.start = node.start;
- 		node.callee.end = node.end;
+     node.callee.end = node.end;
 
     node.arguments = [expression];
   }
 };
 
 function AwaitExpression(node, st, c) {
-	c(node.argument, st, 'Expression');
+  c(node.argument, st, 'Expression');
 }
 
 // Since other walks may be performed before we had a chance to replace the
 // AwaitExpression, we need to add this on the base one.
 if(walk.base.AwaitExpression == null) {
-	walk.base.AwaitExpression = AwaitExpression;
+  walk.base.AwaitExpression = AwaitExpression;
 }
 
 var baseVisitor = Object.create(walk.base);
@@ -119,27 +119,27 @@ baseVisitor.AwaitExpression = AwaitExpression;
 
 
 var asyncAwaitDefs = {
-	'!name': 'AsyncAwait',
-	'__Promise_value': {
-		"!type": "fn(value: ?) -> !custom:Promise_value"
-	}
+  '!name': 'AsyncAwait',
+  '__Promise_value': {
+    "!type": "fn(value: ?) -> !custom:Promise_value"
+  }
 };
 
 tern.registerPlugin("asyncawait", function(server, options) {
-	server.on("preParse", function(text, options) {
-		// Set acorn parser options
-		if(!options.plugins) {
-			options.plugins = {};
-		}
-		options.plugins.asyncawait = true;
-		options.ecmaVersion = 7;
-	});
+  server.on("preParse", function(text, options) {
+    // Set acorn parser options
+    if(!options.plugins) {
+      options.plugins = {};
+    }
+    options.plugins.asyncawait = true;
+    options.ecmaVersion = 7;
+  });
 
-	server.on('postParse', function(ast, text) {
-		// Transform the AST
-		walk.ancestor(ast, transformVisitor, baseVisitor, {});
-	});
-	server.addDefs(asyncAwaitDefs);
+  server.on('postParse', function(ast, text) {
+    // Transform the AST
+    walk.ancestor(ast, transformVisitor, baseVisitor, {});
+  });
+  server.addDefs(asyncAwaitDefs);
 
   var PromiseResolvesTo = infer.constraint({
     construct: function(output) { this.output = output; },
@@ -155,7 +155,7 @@ tern.registerPlugin("asyncawait", function(server, options) {
   infer.registerFunction("Promise_value", function(_self, args, argNodes) {
     var self = new infer.AVal;
     if (args.length) {
-	    var aval = args[0];
+      var aval = args[0];
       aval.propagate(new PromiseResolvesTo(self));
     }
     return self;
