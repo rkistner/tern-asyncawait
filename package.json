@@ -1,5 +1,5 @@
 {
-  "name": "tern-async-await",
+  "name": "tern-asyncawait",
   "version": "0.1.0",
   "description": "Async/await support for Tern",
   "main": "index.js",
