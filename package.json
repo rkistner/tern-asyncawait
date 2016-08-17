@@ -1,0 +1,20 @@
+{
+  "name": "tern-async-await",
+  "version": "0.1.0",
+  "description": "Async/await support for Tern",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "keywords": [
+    "tern",
+    "async",
+    "await"
+  ],
+  "author": "Ralf Kistner <ralf@journeyapps.com>",
+  "license": "MIT",
+  "dependencies": {
+    "acorn-es7-plugin": "^1.0.17",
+    "tern": "^0.20.0"
+  }
+}
